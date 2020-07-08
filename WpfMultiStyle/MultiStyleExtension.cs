@@ -73,11 +73,39 @@ namespace WpfMultiStyle
                 foreach (string resourceKey in _internalResourceKeys)
                 {
                     Style currentStyle = fe.TryFindResource(resourceKey) as Style;
-                    
+
                     // 忽略无效的 Style
                     if (currentStyle != null)
                     {
                         resultStyle.Merge(currentStyle);
+                    }
+                }
+            }
+
+            var se = service.TargetObject as Style;
+
+            if (se != null)
+            {
+                var schemaContextProvider = serviceProvider.GetService(typeof(IXamlSchemaContextProvider)) as IXamlSchemaContextProvider;
+
+                var ambientProvider = serviceProvider.GetService(typeof(IAmbientProvider)) as IAmbientProvider;
+
+                if (schemaContextProvider != null && ambientProvider != null)
+                {
+                    XamlSchemaContext schemaContext = schemaContextProvider.SchemaContext;
+
+                    XamlType[] types = new XamlType[1] { schemaContext.GetXamlType(typeof(ResourceDictionary)) };
+
+                    ResourceDictionary resources = ambientProvider.GetFirstAmbientValue(types) as ResourceDictionary;
+
+                    foreach (string resourceKey in _internalResourceKeys)
+                    {
+                        Style currentStyle = resources[resourceKey] as Style;
+
+                        if (currentStyle != null)
+                        {
+                            resultStyle.Merge(currentStyle);
+                        }
                     }
                 }
             }
