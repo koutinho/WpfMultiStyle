@@ -90,5 +90,21 @@ namespace WpfMultiStyle
                 }
             }
         }
+
+        public static T GetResource<T>(this ResourceDictionary resourceDictionary, string resourceKey) where T : class
+        {
+            if (resourceDictionary.Contains(resourceKey))
+                return resourceDictionary[resourceKey] as T;
+
+            foreach (ResourceDictionary mergeResourceDictionary in resourceDictionary.MergedDictionaries)
+            {
+                T resource = mergeResourceDictionary.GetResource<T>(resourceKey);
+
+                if (resource != null)
+                    return resource;
+            }
+
+            return null;
+        }
     }
 }

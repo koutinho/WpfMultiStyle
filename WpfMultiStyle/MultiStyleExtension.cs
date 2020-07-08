@@ -96,15 +96,20 @@ namespace WpfMultiStyle
 
                     XamlType[] types = new XamlType[1] { schemaContext.GetXamlType(typeof(ResourceDictionary)) };
 
-                    ResourceDictionary resources = ambientProvider.GetFirstAmbientValue(types) as ResourceDictionary;
+                    IEnumerable<object> allResourceDictionaries = ambientProvider.GetAllAmbientValues(types) as IEnumerable<object>;
 
                     foreach (string resourceKey in _internalResourceKeys)
                     {
-                        Style currentStyle = resources[resourceKey] as Style;
-
-                        if (currentStyle != null)
+                        foreach (object resourceDictionaryObject in allResourceDictionaries)
                         {
-                            resultStyle.Merge(currentStyle);
+                            ResourceDictionary resourceDictionary = (ResourceDictionary)resourceDictionaryObject;
+
+                            Style currentStyle = resourceDictionary.GetResource<Style>(resourceKey);
+
+                            if (currentStyle != null)
+                            {
+                                resultStyle.Merge(currentStyle);
+                            }
                         }
                     }
                 }
