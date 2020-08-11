@@ -81,10 +81,7 @@ namespace WpfMultiStyle
                     }
                 }
             }
-
-            var se = service.TargetObject as Style;
-
-            if (se != null)
+            else
             {
                 var schemaContextProvider = serviceProvider.GetService(typeof(IXamlSchemaContextProvider)) as IXamlSchemaContextProvider;
 
