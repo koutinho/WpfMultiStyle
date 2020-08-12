@@ -22,3 +22,6 @@ xmlns:wms="clr-namespace:WpfMultiStyle;assembly=WpfMultiStyle"
 
 ## 参考
 [How to apply multiple styles in WPF](http://stackoverflow.com/questions/16096/how-to-apply-multiple-styles-in-wpf)
+
+## Unitel
+Добавлена возможность применять мультистили в обьвлениях стилей в ресурсах, в швблонах и т.д.
