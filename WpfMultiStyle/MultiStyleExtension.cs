@@ -65,48 +65,29 @@ namespace WpfMultiStyle
         {
             Style resultStyle = new Style();
 
-            IProvideValueTarget service = serviceProvider.GetService(typeof(IProvideValueTarget)) as IProvideValueTarget;
-            var fe = service.TargetObject as FrameworkElement;
-            
-            if (fe != null)
+            var schemaContextProvider = serviceProvider.GetService(typeof(IXamlSchemaContextProvider)) as IXamlSchemaContextProvider;
+
+            var ambientProvider = serviceProvider.GetService(typeof(IAmbientProvider)) as IAmbientProvider;
+
+            if (schemaContextProvider != null && ambientProvider != null)
             {
+                XamlSchemaContext schemaContext = schemaContextProvider.SchemaContext;
+
+                XamlType[] types = new XamlType[1] { schemaContext.GetXamlType(typeof(ResourceDictionary)) };
+
+                IEnumerable<object> allResourceDictionaries = ambientProvider.GetAllAmbientValues(types) as IEnumerable<object>;
+
                 foreach (string resourceKey in _internalResourceKeys)
                 {
-                    Style currentStyle = fe.TryFindResource(resourceKey) as Style;
-
-                    // 忽略无效的 Style
-                    if (currentStyle != null)
+                    foreach (object resourceDictionaryObject in allResourceDictionaries)
                     {
-                        resultStyle.Merge(currentStyle);
-                    }
-                }
-            }
-            else
-            {
-                var schemaContextProvider = serviceProvider.GetService(typeof(IXamlSchemaContextProvider)) as IXamlSchemaContextProvider;
+                        ResourceDictionary resourceDictionary = (ResourceDictionary)resourceDictionaryObject;
 
-                var ambientProvider = serviceProvider.GetService(typeof(IAmbientProvider)) as IAmbientProvider;
+                        Style currentStyle = resourceDictionary.GetResource<Style>(resourceKey);
 
-                if (schemaContextProvider != null && ambientProvider != null)
-                {
-                    XamlSchemaContext schemaContext = schemaContextProvider.SchemaContext;
-
-                    XamlType[] types = new XamlType[1] { schemaContext.GetXamlType(typeof(ResourceDictionary)) };
-
-                    IEnumerable<object> allResourceDictionaries = ambientProvider.GetAllAmbientValues(types) as IEnumerable<object>;
-
-                    foreach (string resourceKey in _internalResourceKeys)
-                    {
-                        foreach (object resourceDictionaryObject in allResourceDictionaries)
+                        if (currentStyle != null)
                         {
-                            ResourceDictionary resourceDictionary = (ResourceDictionary)resourceDictionaryObject;
-
-                            Style currentStyle = resourceDictionary.GetResource<Style>(resourceKey);
-
-                            if (currentStyle != null)
-                            {
-                                resultStyle.Merge(currentStyle);
-                            }
+                            resultStyle.Merge(currentStyle);
                         }
                     }
                 }
