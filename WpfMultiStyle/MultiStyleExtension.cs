@@ -65,6 +65,21 @@ namespace WpfMultiStyle
         {
             Style resultStyle = new Style();
 
+            foreach (string resourceKey in _internalResourceKeys)
+            {
+                Style currentStyle = TryFindInAmbientResources(serviceProvider, resourceKey)
+                    ?? TryFindInStaticResource(serviceProvider, resourceKey);
+
+
+                if (currentStyle != null)
+                    resultStyle.Merge(currentStyle);
+            }
+
+            return resultStyle;
+        }
+
+        private Style TryFindInAmbientResources(IServiceProvider serviceProvider, string resourceKey)
+        {
             var schemaContextProvider = serviceProvider.GetService(typeof(IXamlSchemaContextProvider)) as IXamlSchemaContextProvider;
 
             var ambientProvider = serviceProvider.GetService(typeof(IAmbientProvider)) as IAmbientProvider;
@@ -77,23 +92,36 @@ namespace WpfMultiStyle
 
                 IEnumerable<object> allResourceDictionaries = ambientProvider.GetAllAmbientValues(types) as IEnumerable<object>;
 
-                foreach (string resourceKey in _internalResourceKeys)
+                foreach (object resourceDictionaryObject in allResourceDictionaries)
                 {
-                    foreach (object resourceDictionaryObject in allResourceDictionaries)
+                    ResourceDictionary resourceDictionary = (ResourceDictionary)resourceDictionaryObject;
+
+                    Style currentStyle = resourceDictionary.GetResource<Style>(resourceKey);
+
+                    if (currentStyle != null)
                     {
-                        ResourceDictionary resourceDictionary = (ResourceDictionary)resourceDictionaryObject;
-
-                        Style currentStyle = resourceDictionary.GetResource<Style>(resourceKey);
-
-                        if (currentStyle != null)
-                        {
-                            resultStyle.Merge(currentStyle);
-                        }
+                        return currentStyle;
                     }
                 }
             }
 
-            return resultStyle;
+            return null;
+        }
+
+        private Style TryFindInStaticResource(IServiceProvider serviceProvider, string resourceKey)
+        {
+            IProvideValueTarget service = serviceProvider.GetService(typeof(IProvideValueTarget)) as IProvideValueTarget;
+            var fe = service.TargetObject as FrameworkElement;
+
+            if (fe != null)
+            {
+                Style currentStyle = fe.TryFindResource(resourceKey) as Style;
+
+                if (currentStyle != null)
+                    return currentStyle;
+            }
+
+            return null;
         }
     }
 }
